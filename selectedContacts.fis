@@ -1,0 +1,672 @@
+def contact_record_len
+    n = 8;100
+    L = 1.2e6;6e4
+    n_sjslip = 5
+end
+
+def contact_record_create_array
+    contact_record_len
+    c = array.create(n)
+    x = array.create(n)
+    y = array.create(n)
+    z = array.create(n)
+    ball = array.create(n)
+end
+
+def contact3
+
+    contact_record_create_array
+    
+    local sign
+
+    loop local j (1, n)
+        if math.random.uniform > 0.5 then
+            sign = 1
+        else
+            sign = -1
+        endif
+        y[j] = sign*math.random.uniform*mv_W/2
+    endloop
+
+    loop j (1, n)
+        if math.random.uniform > 0.5 then
+            sign = 1
+        else
+            sign = -1
+        endif
+        x[j] = sign*math.random.uniform*mv_W/2
+    endloop
+
+    loop local i (1, n)
+        z[i] = (-1) *math.sqrt(3) * x[i]
+    end_loop
+        
+
+    
+    loop i (1, n)
+        local bp = ball.near(x[i], y[i], z[i])
+        ball[i] = bp
+        m = ball.contactmap(bp)
+        c[i] = m[1]
+    endloop
+    
+end
+
+
+def ball_other_end
+    contact3
+    ball2 = array.create(n)
+    loop local j (1, n)
+        if contact.end1(c[j]) = ball[j] then
+            ball2[j] = contact.end2(c[j])
+        else
+            ball2[j] = contact.end1(c[j])
+        endif
+    endloop
+end
+
+;def energy_array_ini
+;    contact3
+;    benergy = array.create(L, 3)
+;    wenergy = array.create(L, 1)
+;    cestrain = array.create(L, n)
+;    ceslip = array.create(L, n)
+;end
+;@energy_array_ini
+;def energy_array_write
+;    ix = ix+1
+;    benergy[ix, 1] = ball.energy(ebody)
+;    benergy[ix, 1] = ball.energy(edamp)
+;    benergy[ix, 2] = ball.energy(ekinetic) 
+;    wenergy[ix, 1] = wall.energy(eboundary)
+;    loop local j (1, n)
+;        if c[j] = null then
+;            cestrain[ix, j] = 0
+;            ceslip[ix, j] = 0
+;        else
+;            cestrain[ix, j] = contact.energy(c[j],estrain)
+;            ceslip[ix, j] = contact.energy(c[j],eslip)
+;        endif
+;    endloop
+;end;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+def cf_array_ini ;need to only run once in the beginning
+    contact3
+    cn = array.create(L, n)
+    cs = array.create(L, n)
+end
+@cf_array_ini
+def cf_array_write ;need to be called every cycle, aka callback
+    iiii = iiii + 1
+    loop local j (1, n)
+        if c[j] = null then
+            cn[iiii, j] = 0
+            cs[iiii, j] = 0
+        else
+            cn[iiii, j] = contact.force.normal(c[j])
+            cs[iiii, j] = contact.force.shear(c[j])
+        endif;;;;;;;;;;
+;cn[iiii, j] = contact.force.normal(c[j])
+;            cs[iiii, j] = contact.force.shear(c[j]);;;;;;;;;
+    endloop
+end
+
+
+def cextra_array_ini ;need to only run once in the beginning
+    contact3
+    cextra1 = array.create(L, n)
+    cextra2 = array.create(L, n)
+    cextra3 = array.create(L, n)
+    cextra4 = array.create(L, n)
+    cextra5 = array.create(L, n)
+    cextra6 = array.create(L, n)
+    cextra7 = array.create(L, n)
+end
+@cextra_array_ini
+def cextra_array_write ;need to be called every cycle, aka callback
+    i1 = i1 + 1
+    loop local j (1, n)
+        if c[j] = null then
+            cextra1[i1, j] = 0
+            cextra2[i1, j] = 0
+            cextra3[i1, j] = 0
+            cextra4[i1, j] = 0
+            cextra5[i1, j] = 0
+            cextra6[i1, j] = 0
+            cextra7[i1, j] = 0
+        else
+            cextra1[i1, j] = contact.extra(c[j],1)
+            cextra2[i1, j] = contact.extra(c[j],2)
+            cextra3[i1, j] = contact.extra(c[j],3)
+            cextra4[i1, j] = contact.extra(c[j],4)
+            cextra5[i1, j] = contact.extra(c[j],5)
+            cextra6[i1, j] = contact.extra(c[j],6)
+            cextra7[i1, j] = contact.extra(c[j],7)
+        endif;;;;;;;;;;
+    endloop
+end
+
+
+def bd_array_ini ;need to only run once in the beginning
+    contact3
+    bdx = array.create(L, n)
+    bdy = array.create(L, n)
+    bdz = array.create(L, n)
+end
+@bd_array_ini
+def bd_array_write ;need to be called every cycle, aka callback
+    iiiii = iiiii + 1
+    loop local j (1, n)
+        bdx[iiiii, j] = ball.disp.x(ball[j])
+        bdy[iiiii, j] = ball.disp.y(ball[j])
+        bdz[iiiii, j] = ball.disp.z(ball[j])
+    endloop
+end
+
+def bv_array_ini ;need to only run once in the beginning
+    contact3
+    bvx = array.create(L, n)
+    bvy = array.create(L, n)
+    bvz = array.create(L, n)
+end
+@bv_array_ini
+def bv_array_write ;need to be called every cycle, aka callback. Callback when triggered, aka bv_array_write_trigger
+    iii = iii + 1
+    loop local j (1, n)
+        bvx[iii,j] = ball.vel.x(ball(j))
+        bvy[iii,j] = ball.vel.y(ball(j))
+        bvz[iii,j] = ball.vel.z(ball(j))
+    endloop
+end
+
+def bv_array_ini_oe ;need to only run once in the beginning
+    ball_other_end
+    bvx_oe = array.create(L, n)
+    bvy_oe = array.create(L, n)
+    bvz_oe = array.create(L, n)
+end
+@bv_array_ini_oe
+def bv_array_write_oe ;need to be called every cycle, aka callback. Callback when triggered, aka bv_array_write_trigger
+    iiiiii = iiiiii + 1
+    loop local j (1, n)
+        bvx_oe[iiiiii,j] = ball.vel.x(ball2(j))
+        bvy_oe[iiiiii,j] = ball.vel.y(ball2(j))
+        bvz_oe[iiiiii,j] = ball.vel.z(ball2(j))
+    endloop
+end
+
+def bd_array_ini_oe ;need to only run once in the beginning
+    ball_other_end
+    bdx_oe = array.create(L, n)
+    bdy_oe = array.create(L, n)
+    bdz_oe = array.create(L, n)
+end
+@bd_array_ini_oe
+def bd_array_write_oe ;need to be called every cycle, aka callback
+    iiiiiii = iiiiiii + 1
+    loop local j (1, n)
+        bdx_oe[iiiiiii, j] = ball.disp.x(ball2[j])
+        bdy_oe[iiiiiii, j] = ball.disp.y(ball2[j])
+        bdz_oe[iiiiiii, j] = ball.disp.z(ball2[j])
+    endloop
+end
+
+def rec_step ;need to only run once in the beginning
+    global_step = array.create(L, 1)
+end
+@rec_step
+def rec_step_write ;need to be called every cycle, aka callback
+    viii = viii + 1
+    global_step[viii, 1] = global.step
+end
+
+def bv_array_write_trigger
+    local temp = mech.step % 1
+    if temp == 0 then
+        bv_array_write
+        bd_array_write
+        cf_array_write
+        bv_array_write_oe
+        bd_array_write_oe
+        rec_step_write
+        cextra_array_write
+        ;energy_array_write
+    end_if
+    
+
+    ;local temp2 = mech.step % 2e4
+    ;if temp2 == 0 & mech.step >= 7e5 then
+     ;   writeSJCount = writeSJCount + 1
+      ;  writeSJ
+    ;end_if
+    
+    local temp2 = mech.step % 100;200 ;200 steps for 90 and 95% reduction to sj_fa, but for 85%, too sparse, so every 100 steps
+    ;if temp2 == 0 & mech.step >= 1.077e6 & mech.step <= 1.078e6 then ;S480 95% sj_fa
+    ;if temp2 == 0 & mech.step >= 9.252e5 & mech.step <= 9.26e5 then ;S480 90% sj_fa
+    ;if temp2 == 0 & mech.step >= 8.014e5 & mech.step <= 8.018e5 then ;S480 85% sj_fa
+;    if temp2 == 0 & (...
+;                        (mech.step>=2.305e5 & mech.step<=2.32e5) | ...
+;                        (mech.step>=5.465e5 & mech.step<=5.466e5) | ...
+;                        (mech.step>=8.7174e5 & mech.step<=8.7184e5) | ...
+;                        (mech.step>=11.182e5 & mech.step<=11.184e5) | ...
+;                        (mech.step>=12.838e5 & mech.step<=12.842e5) ...
+;                    )...;S4801
+;        then;;
+;    if mech.step % 600 == 0 & (...
+;                        (mech.step>=6.015e5 & mech.step<=6.045e5) | ...
+;                        (mech.step>=6.458e5 & mech.step<=6.472e5) | ...
+;                        (mech.step>=7.356e5 & mech.step<=7.38e5) ...
+;                    )...;S4802
+;        then
+
+;    if mech.step % 32000 == 0 & (mech.step >=0 & mech.step<=32e4) ...
+;    then
+;        writeSJCount = writeSJCount + 1
+;        writeSJ
+;    end_if
+
+end
+
+def bv_init ;need to call once in the CompTest File
+    command
+        set fish callback 10.11 @bv_array_write_trigger
+    end_command
+end
+
+def bv_array_dumpall
+  ;local crk_all = array.create(ae_num+1)
+  local status = file.open('bvx.txt',1,1)   
+    local bvx_temp = array.create(L)
+    loop local i (1, L)
+        ;bvx_temp(i) = string(bvx(i, 1)) + ' ' string(bvx(i, 2)) + ' ' + ...
+        loop local j (1, n)
+            bvx_temp(i) = string(bvx_temp(i)) + ' ' + string(bvx(i, j))
+        end_loop
+    end_loop  
+  status = file.write(bvx_temp, L)
+  status = file.close
+  status = array.delete(bvx_temp)
+  
+  status = file.open('bvy.txt',1,1)   
+    local bvy_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bvy_temp(i) = string(bvy_temp(i)) + ' ' + string(bvy(i, j))
+        end_loop
+    end_loop
+  status = file.write(bvy_temp, L)
+  status = file.close
+  status = array.delete(bvy_temp)
+  
+    status = file.open('bvz.txt',1,1)   
+    local bvz_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bvz_temp(i) = string(bvz_temp(i)) + ' ' + string(bvz(i, j))
+        end_loop
+    end_loop
+  status = file.write(bvz_temp, L)
+  status = file.close
+  status = array.delete(bvz_temp)
+  
+    status = file.open('bdx.txt',1,1)   
+    local bdx_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bdx_temp(i) = string(bdx_temp(i)) + ' ' + string(bdx(i, j))
+        end_loop
+    end_loop  
+  status = file.write(bdx_temp, L)
+  status = file.close
+  status = array.delete(bdx_temp)
+  
+  status = file.open('bdy.txt',1,1)   
+    local bdy_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bdy_temp(i) = string(bdy_temp(i)) + ' ' + string(bdy(i, j))
+        end_loop
+    end_loop
+  status = file.write(bdy_temp, L)
+  status = file.close
+  status = array.delete(bdy_temp)
+  
+  status = file.open('bdz.txt',1,1)   
+    local bdz_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(bdz(i, j))
+        end_loop
+    end_loop
+  status = file.write(bdz_temp, L)
+  status = file.close
+  status = array.delete(bdz_temp)
+ 
+    status = file.open('cn.txt',1,1)
+    local cn_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cn_temp(i) = string(cn_temp(i)) + ' ' + string(cn(i, j))
+        end_loop
+    end_loop
+  status = file.write(cn_temp, L)
+  status = file.close
+  status = array.delete(cn_temp)
+
+      status = file.open('cs.txt',1,1)
+    local cs_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cs_temp(i) = string(cs_temp(i)) + ' ' + string(cs(i, j))
+        end_loop
+    end_loop
+  status = file.write(cs_temp, L)
+  status = file.close
+  status = array.delete(cs_temp)
+  
+  
+  
+  
+  
+    status = file.open('bvx_oe.txt',1,1)   
+    bvx_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bvx_temp(i) = string(bvx_temp(i)) + ' ' + string(bvx_oe(i, j))
+        end_loop
+    end_loop  
+  status = file.write(bvx_temp, L)
+  status = file.close
+  status = array.delete(bvx_temp)
+  
+  status = file.open('bvy_oe.txt',1,1)   
+    bvy_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bvy_temp(i) = string(bvy_temp(i)) + ' ' + string(bvy_oe(i, j))
+        end_loop
+    end_loop
+  status = file.write(bvy_temp, L)
+  status = file.close
+  status = array.delete(bvy_temp)
+  
+    status = file.open('bvz_oe.txt',1,1)   
+    bvz_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bvz_temp(i) = string(bvz_temp(i)) + ' ' + string(bvz_oe(i, j))
+        end_loop
+    end_loop
+  status = file.write(bvz_temp, L)
+  status = file.close
+  status = array.delete(bvz_temp)
+  
+    status = file.open('bdx_oe.txt',1,1)   
+    bdx_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bdx_temp(i) = string(bdx_temp(i)) + ' ' + string(bdx_oe(i, j))
+        end_loop
+    end_loop  
+  status = file.write(bdx_temp, L)
+  status = file.close
+  status = array.delete(bdx_temp)
+  
+  status = file.open('bdy_oe.txt',1,1)   
+    bdy_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bdy_temp(i) = string(bdy_temp(i)) + ' ' + string(bdy_oe(i, j))
+        end_loop
+    end_loop
+  status = file.write(bdy_temp, L)
+  status = file.close
+  status = array.delete(bdy_temp)
+  
+  status = file.open('bdz_oe.txt',1,1)   
+    bdz_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(bdz_oe(i, j))
+        end_loop
+    end_loop
+  status = file.write(bdz_temp, L)
+  status = file.close
+  status = array.delete(bdz_temp)
+  
+  status = file.open('global_step.txt',1,1)   
+    bdz_temp = array.create(L)
+    loop i (1, L)
+        bdz_temp(i) = string(global_step(i, 1))
+    end_loop
+  status = file.write(bdz_temp, L)
+  status = file.close
+  status = array.delete(bdz_temp)
+  
+    status = file.open('cextra1.txt',1,1)   
+    cextra1_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra1_temp(i) = string(cextra1_temp(i)) + ' ' + string(cextra1(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra1_temp, L)
+  status = file.close
+  status = array.delete(cextra1_temp)
+  
+  status = file.open('cextra2.txt',1,1)   
+    cextra2_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra2_temp(i) = string(cextra2_temp(i)) + ' ' + string(cextra2(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra2_temp, L)
+  status = file.close
+  status = array.delete(cextra2_temp)
+  
+  status = file.open('cextra3.txt',1,1)   
+    cextra3_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra3_temp(i) = string(cextra3_temp(i)) + ' ' + string(cextra3(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra3_temp, L)
+  status = file.close
+  status = array.delete(cextra3_temp)
+  
+  status = file.open('cextra4.txt',1,1)   
+    cextra4_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra4_temp(i) = string(cextra4_temp(i)) + ' ' + string(cextra4(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra4_temp, L)
+  status = file.close
+  status = array.delete(cextra4_temp)
+  
+  status = file.open('cextra5.txt',1,1)   
+    cextra5_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra5_temp(i) = string(cextra5_temp(i)) + ' ' + string(cextra5(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra5_temp, L)
+  status = file.close
+  status = array.delete(cextra5_temp)
+  
+  status = file.open('cextra6.txt',1,1)   
+    cextra6_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra6_temp(i) = string(cextra6_temp(i)) + ' ' + string(cextra6(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra6_temp, L)
+  status = file.close
+  status = array.delete(cextra6_temp)
+  
+  status = file.open('cextra7.txt',1,1)   
+    cextra7_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra7_temp(i) = string(cextra7_temp(i)) + ' ' + string(cextra7(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra7_temp, L)
+  status = file.close
+  status = array.delete(cextra7_temp)
+  
+     ;status = file.open('benergy.txt',1,1)
+;    bdz_temp = array.create(L)
+;    loop i (1, L)
+;        loop j (1, 2)
+;            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(benergy(i, j))
+;        end_loop
+;    end_loop
+;  status = file.write(bdz_temp, L)
+;  status = file.close
+;  status = array.delete(bdz_temp)
+;
+;      status = file.open('wenergy.txt',1,1)
+;    bdz_temp = array.create(L)
+;    loop i (1, L)
+;        loop j (1, 1)
+;            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(wenergy(i, j))
+;        end_loop
+;    end_loop
+;  status = file.write(bdz_temp, L)
+;  status = file.close
+;  status = array.delete(bdz_temp)
+;
+;      status = file.open('cestrain.txt',1,1)
+;    bdz_temp = array.create(L)
+;    loop i (1, L)
+;        loop j (1, n)
+;            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(cestrain(i, j))
+;        end_loop
+;    end_loop
+;  status = file.write(bdz_temp, L)
+;  status = file.close
+;  status = array.delete(bdz_temp)
+;
+;        status = file.open('ceslip.txt',1,1)
+;    bdz_temp = array.create(L)
+;    loop i (1, L)
+;        loop j (1, n)
+;            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(ceslip(i, j))
+;        end_loop
+;    end_loop
+;  status = file.write(bdz_temp, L)
+;  status = file.close
+;  status = array.delete(bdz_temp)
+end
+
+def b_coord_dumpall
+  local status = file.open('b_coord.txt',1,1)   
+    local b_c = array.create(L)
+;    loop i (1, L)
+;        loop j (1, n)
+;            bdz_temp(i) = string(bdz_temp(i)) + ' ' + string(bdz_oe(i, j))
+;        end_loop
+;    end_loop;;
+    loop i (1, n)
+        b_c(i) = string(ball.pos.x(ball[i])) + ' ' + string(ball.pos.y(ball[i])) + ' ' + string(ball.pos.z(ball[i])) + ' ' + string(ball.pos.x(ball2[i])) + ' ' + string(ball.pos.y(ball2[i])) + ' ' + string(ball.pos.z(ball2[i]))
+    endloop
+  status = file.write(b_c, n)
+  status = file.close
+  status = array.delete(b_c)
+end
+
+def contact_model
+  local status = file.open('c_model.txt',1,1)   
+    local b_c = array.create(L)
+
+    loop i (1, n)
+        b_c(i) = string(contact.model(c[i])) 
+    endloop
+  status = file.write(b_c, n)
+  status = file.close
+  status = array.delete(b_c)
+end
+
+def writeSJ
+    writeSJFName = 'sj'+ string(writeSJCount) +'.txt'
+    local status = file.open(writeSJFName, 1,1)
+    
+    sj_array_size = 0
+    loop foreach cp contact.list.all
+        if contact.model(cp) == 'smoothjoint'
+            sj_array_size = sj_array_size + 1
+        end_if
+    end_loop
+    
+    local temp = array.create(sj_array_size)
+    local i = 1
+    loop foreach cp contact.list.all
+        if contact.model(cp) == 'smoothjoint'
+            temp(i) = ...
+                        string(contact.pos.x(cp)) + ' ' + ...
+                        string(contact.pos.y(cp)) + ' ' + ...
+                        string(contact.pos.z(cp)) + ' ' + ...
+                        string(contact.prop(cp, 'sj_radius')) + ' ' + ...
+                        string(contact.prop(cp, 'sj_area')) + ' ' + ...
+                        string(contact.prop(cp, 'sj_kn')) + ' ' + ...
+                        string(contact.prop(cp, 'sj_ks'))+ ' ' + ...
+                        string(bal.pos.x(contact.end1(cp))) + ' ' + ...
+                        string(bal.pos.y(contact.end1(cp))) + ' ' + ...
+                        string(bal.pos.z(contact.end1(cp))) + ' ' + ...
+                        string(bal.pos.x(contact.end2(cp))) + ' ' + ...
+                        string(bal.pos.y(contact.end2(cp))) + ' ' + ...
+                        string(bal.pos.z(contact.end2(cp))) + ' ' + ...
+                        string(contact.prop(cp, 'sj_state')) + ' ' + ...
+                        string(contact.prop(cp, 'sj_fn')) + ' ' + ...
+                        string(contact.prop(cp, 'sj_fs')) + ' ' + ...
+                        string(ball.id(contact.end1(cp))) + ' ' + ...
+                        string(ball.id(contact.end2(cp))) + ' ' + ...
+                        string(ball.radius(contact.end1(cp))) + ' ' + ...
+                        string(ball.radius(contact.end2(cp))) + ' ' + ...
+                        string(bal.disp.x(contact.end1(cp))) + ' ' + ...
+                        string(bal.disp.y(contact.end1(cp))) + ' ' + ...
+                        string(bal.disp.z(contact.end1(cp))) + ' ' + ...
+                        string(bal.disp.x(contact.end2(cp))) + ' ' + ...
+                        string(bal.disp.y(contact.end2(cp))) + ' ' + ...
+                        string(bal.disp.z(contact.end2(cp))) + ' ' + ...
+                        string(bal.spin.x(contact.end1(cp))) + ' ' + ...
+                        string(bal.spin.y(contact.end1(cp))) + ' ' + ...
+                        string(bal.spin.z(contact.end1(cp))) + ' ' + ...
+                        string(bal.spin.x(contact.end2(cp))) + ' ' + ...
+                        string(bal.spin.y(contact.end2(cp))) + ' ' + ...
+                        string(bal.spin.z(contact.end2(cp))) + ' ' + ...
+                        string(bal.vel.x(contact.end1(cp))) + ' ' + ...
+                        string(bal.vel.y(contact.end1(cp))) + ' ' + ...
+                        string(bal.vel.z(contact.end1(cp))) + ' ' + ...
+                        string(bal.vel.x(contact.end2(cp))) + ' ' + ...
+                        string(bal.vel.y(contact.end2(cp))) + ' ' + ...
+                        string(bal.vel.z(contact.end2(cp)))
+            i = i+1
+        end_if
+    end_loop
+    
+    status = file.write(temp, sj_array_size)
+    status = file.close
+    status = array.delete(temp)
+    
+    ft_SaveState( cm_matName, 'SJ' + string(writeSJCount) )
+end
+
+def export_cextra7
+status = file.open('cextra7.txt',1,1)   
+    cextra7_temp = array.create(L)
+    loop i (1, L)
+        loop j (1, n)
+            cextra7_temp(i) = string(cextra7_temp(i)) + ' ' + string(cextra7(i, j))
+        end_loop
+    end_loop
+  status = file.write(cextra7_temp, L)
+  status = file.close
+  status = array.delete(cextra7_temp)
+  end
